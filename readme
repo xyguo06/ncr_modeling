@@ -1,1 +1,43 @@
 
+For the modeling (unsupervised similarity / clustering), we plan to use:
+
+A) Geospatial / Network features (proximity + overlap)
+existing_neighbors_within_2/3/4mi (how many current customer sites are within the radius around each target / account)
+overlap_coverage_2/3/4mi (share of a target account’s sites that have at least one existing neighbor within the radius)
+neighbors_per_site_2/3/4mi (normalized overlap intensity = total neighbors ÷ target site count)
+(If available) simple concentration signals like #states covered / top_state_share
+
+C) Scale / Footprint features (size + distribution)
+target_site_cnt (number of target sites under the account)
+(Optional) distribution signals like state_cnt / top_state_share to describe how concentrated vs. spread the footprint is
+
+B) Operational / Cost proxy features (from EDA; currently missing for targets)
+Right now, what we mainly still miss is the B. Operational / cost proxy data from our EDA (service tickets / maintenance data we discussed in the meeting). If we can get these fields for current customers at account level, Jane and I can train/test the unsupervised model and then use similarity (nearest neighbors / cluster averages) to estimate the same operational proxies for new targets.
+Request: please help update these 8 B-fields (account-level) by Monday 12:00 PM
+incidents_per_site_year
+Meaning: # of service incidents per site per year (support workload intensity).
+How to get it: count tickets in the last 12 months by account, then divide by # sites.
+maintenance_hours_per_site_year
+Meaning: maintenance labor hours per site per year (operational effort).
+How to get it: sum maintenance hours from tickets by account (prefer travel + on-site hours if available), then divide by # sites.
+(In the meeting Alberto clarified we should align to the official time definition.)
+median_minutes_to_complete
+Meaning: median time (minutes) from ticket creation to completion (typical completion time).
+How to get it: compute (close_time - create_time) per ticket, take median by account.
+sla_met_rate
+Meaning: % of tickets completed within SLA (service reliability risk).
+How to get it: use SLA met flag (or compute using SLA due time vs. close time), then calculate share by account.
+(If we see unusual patterns like 100% for some types, we can QA later, but we still need the metric.)
+sco_incident_share
+Meaning: % of incidents that are Self-Checkout (SCO).
+How to get it: use machine_type/category in tickets; SCO tickets / total tickets by account.
+pos_incident_share
+Meaning: % of incidents that are POS.
+How to get it: POS tickets / total tickets by account.
+repaired_machines_per_site_year
+Meaning: # of distinct machines repaired per site per year (break/fix frequency proxy).
+How to get it: count distinct device_id/serial/asset_id per account (in last 12 months), then divide by # sites.
+(If device_id is not available, we may need to use a fallback proxy like tickets per site.)
+operational_burden_score
+Meaning: a composite “cost-to-serve” proxy score (higher = more costly).
+How to get it: we can build this from the above metrics (standardize and combine).
